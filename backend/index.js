@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import { connectdb } from "./dbconnect.js";
 import dns from "node:dns";
+
 import ScrapeRoutes from "./src/Routes/Scrapping.js";
 import AuthRoutes from "./src/Routes/AuthRoutes.js";
 import InterviweRoutes from "./src/Routes/Interview.js";
@@ -20,12 +21,18 @@ const __dirname = path.dirname(__filename);
 // Middleware
 app.use(
   cors({
-    origin: ["http://localhost:5173", "https://your-render-app.onrender.com"],
+    origin: ["http://localhost:5173", "https://ai-interview-s9rr.onrender.com"],
+    credentials: true,
   }),
 );
 
 app.use(express.json());
-app.use(express.text({ type: ["application/sdp", "text/plain"] }));
+
+app.use(
+  express.text({
+    type: ["application/sdp", "text/plain"],
+  }),
+);
 
 // DNS configuration
 dns.setServers(["8.8.8.8", "8.8.4.4"]);
@@ -44,22 +51,22 @@ app.use(
 
 app.use("/start", InterviweRoutes);
 
-const sessionConfig = JSON.stringify({
-  type: "realtime",
-  model: "gpt-realtime-2.1",
-  audio: {
-    output: { voice: "marin" },
-  },
-});
+// Frontend build directory
+const frontendPath = path.join(__dirname, "../frontend/ai-interview/dist");
 
-// Serve React frontend
-app.use(express.static(path.join(__dirname, "../frontend/ai-interview/dist")));
+// Serve React static files
+app.use(express.static(frontendPath));
 
-// React routing fallback
+// React Router fallback
 app.get("/{*splat}", (req, res) => {
-  res.sendFile(
-    path.join(__dirname, "../frontend/ai-interview/dist/index.html"),
-  );
+  res.sendFile(path.join(frontendPath, "index.html"), (err) => {
+    if (err) {
+      console.error("Frontend index.html not found:", err);
+      res
+        .status(500)
+        .send("Frontend build not found. Please run npm run build.");
+    }
+  });
 });
 
 // Start server
@@ -68,8 +75,10 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, "0.0.0.0", async () => {
   try {
     await connectdb();
+    console.log(`MongoDB connected successfully`);
     console.log(`Server running on port ${PORT}`);
+    console.log(`Frontend directory: ${frontendPath}`);
   } catch (error) {
-    console.log("Database connection error:", error);
+    console.error("Database connection error:", error);
   }
 });

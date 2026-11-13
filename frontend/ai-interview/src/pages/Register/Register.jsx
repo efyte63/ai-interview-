@@ -1,6 +1,6 @@
-
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import api from "../../axios.js";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -13,39 +13,31 @@ const Register = () => {
     e.preventDefault();
 
     try {
-      const response = await fetch("http://localhost:3000/auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ username, email, password }),
+      const response = await api.post("/auth/register", {
+        username,
+        email,
+        password,
       });
 
-      const data = await response.json();
+      const data = response.data;
 
-      if (!response.ok) {
-        alert(data.message);
-        return;
-      }
-
-      alert("Registration successful");
+      alert(data.message || "Registration successful");
       navigate("/");
     } catch (error) {
       console.log(error);
-      alert("Something went wrong");
+
+      alert(error.response?.data?.message || "Something went wrong");
     }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#080b16] px-4 py-10 relative overflow-hidden">
-
       {/* Background Effects */}
       <div className="absolute w-96 h-96 bg-blue-600/20 rounded-full blur-[120px] -top-20 -left-20"></div>
       <div className="absolute w-96 h-96 bg-purple-600/20 rounded-full blur-[120px] bottom-0 right-0"></div>
 
       {/* Register Card */}
       <div className="relative w-full max-w-md bg-[#111827]/90 border border-white/10 rounded-2xl p-8 sm:p-10 shadow-2xl backdrop-blur-xl">
-
         {/* Logo */}
         <div className="flex justify-center mb-7">
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
@@ -78,12 +70,12 @@ const Register = () => {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-5">
-
           {/* Username */}
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
               Username
             </label>
+
             <div className="relative">
               <svg
                 className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500"
@@ -112,6 +104,7 @@ const Register = () => {
             <label className="block text-sm font-medium text-gray-300 mb-2">
               Email Address
             </label>
+
             <div className="relative">
               <svg
                 className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500"
@@ -140,6 +133,7 @@ const Register = () => {
             <label className="block text-sm font-medium text-gray-300 mb-2">
               Password
             </label>
+
             <div className="relative">
               <svg
                 className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500"
@@ -184,11 +178,9 @@ const Register = () => {
             </Link>
           </p>
         </div>
-
       </div>
     </div>
   );
 };
 
 export default Register;
-

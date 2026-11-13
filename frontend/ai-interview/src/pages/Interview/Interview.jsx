@@ -1,8 +1,11 @@
+
 import { useRef, useEffect, useState } from "react";
+import api from "../../axios.js";
 
 // ---------------------------------------------------------------------------
 // Realtime session settings
 // ---------------------------------------------------------------------------
+
 const TRANSCRIPTION_LANGUAGE = "en";
 
 const buildSessionConfig = (role) => ({
@@ -54,7 +57,7 @@ const Interview = () => {
   const processedItems = useRef(new Set());
 
   // -------------------------------------------------------------------------
-  // WEBRTC + OPENAI REALTIME LOGIC (UNCHANGED)
+  // WEBRTC + OPENAI REALTIME LOGIC
   // -------------------------------------------------------------------------
 
   useEffect(() => {
@@ -80,14 +83,12 @@ const Interview = () => {
         const dataChannel = pc.createDataChannel("oai-events");
 
         dataChannel.onopen = () => {
-    
           setStatus("Connected");
 
           dataChannel.send(JSON.stringify(buildSessionConfig(role)));
         };
 
-        dataChannel.onclose = () => {
-        };
+        dataChannel.onclose = () => {};
 
         dataChannel.onmessage = (event) => {
           try {
@@ -110,7 +111,8 @@ const Interview = () => {
             }
 
             if (
-              data.type === "conversation.item.input_audio_transcription.delta"
+              data.type ===
+              "conversation.item.input_audio_transcription.delta"
             ) {
               console.log("Candidate speaking:", data.delta);
             }
@@ -148,7 +150,8 @@ const Interview = () => {
             }
 
             if (
-              data.type === "conversation.item.input_audio_transcription.failed"
+              data.type ===
+              "conversation.item.input_audio_transcription.failed"
             ) {
               console.error("Transcription failed:", data.error);
             }
@@ -200,7 +203,9 @@ const Interview = () => {
         let outgoingTrack = ms.getAudioTracks()[0];
 
         try {
-          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          audioCtx = new (window.AudioContext ||
+            window.webkitAudioContext)();
+
           await audioCtx.resume();
 
           const source = audioCtx.createMediaStreamSource(ms);
@@ -230,7 +235,10 @@ const Interview = () => {
 
           outgoingTrack = destination.stream.getAudioTracks()[0];
         } catch (filterError) {
-          console.warn("Audio filter unavailable, using raw mic:", filterError);
+          console.warn(
+            "Audio filter unavailable, using raw mic:",
+            filterError
+          );
 
           outgoingTrack = ms.getAudioTracks()[0];
         }
@@ -256,23 +264,23 @@ const Interview = () => {
         const offer = await pc.createOffer();
         await pc.setLocalDescription(offer);
 
-        // Backend request
-        const sdpResponse = await fetch("http://localhost:3000/start/session", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/sdp",
-            Authorization: `Bearer ${token}`,
-            "X-Interview-Role": role,
-          },
-          body: offer.sdp,
-        });
+        // -------------------------------------------------------------------
+        // Backend request using common Axios instance
+        // -------------------------------------------------------------------
 
-        if (!sdpResponse.ok) {
-          const errorText = await sdpResponse.text();
-          throw new Error(errorText);
-        }
+        const sdpResponse = await api.post(
+          "/start/session",
+          offer.sdp,
+          {
+            headers: {
+              "Content-Type": "application/sdp",
+              Authorization: `Bearer ${token}`,
+              "X-Interview-Role": role,
+            },
+          }
+        );
 
-        const result = await sdpResponse.json();
+        const result = sdpResponse.data;
 
         if (!result.sdp || !result.interviewid) {
           throw new Error("Invalid response from backend");
@@ -326,6 +334,7 @@ const Interview = () => {
   const isConnected = status === "Connected";
   const isListening = status === "Listening...";
   const isThinking = status === "Thinking...";
+
   const hasError =
     status === "Connection failed" || status === "Connection problem";
 
@@ -634,7 +643,9 @@ const Interview = () => {
                           Your Response
                         </span>
 
-                        <span className="text-xs text-slate-600">#{i + 1}</span>
+                        <span className="text-xs text-slate-600">
+                          #{i + 1}
+                        </span>
                       </div>
 
                       <p className="whitespace-pre-wrap text-sm leading-7 text-slate-300">

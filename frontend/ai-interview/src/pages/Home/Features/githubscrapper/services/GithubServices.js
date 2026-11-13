@@ -1,11 +1,11 @@
-import axios from "axios";
+import api from "../../../../../axios.js";
 
 export async function sendgithublink(link) {
   try {
     const token = localStorage.getItem("token");
 
-    const response = await axios.post(
-      `http://localhost:3000/scrape/github/${encodeURIComponent(link.trim())}`,
+    const response = await api.post(
+      `/scrape/github/${encodeURIComponent(link.trim())}`,
       {},
       {
         headers: {

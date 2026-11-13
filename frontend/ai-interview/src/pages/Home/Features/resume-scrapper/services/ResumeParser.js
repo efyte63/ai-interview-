@@ -1,20 +1,18 @@
-import axios from "axios";
+import api from "../../../../../axios.js";
 
 const ResumeParser = async (file) => {
   try {
     const formData = new FormData();
-      let token = localStorage.getItem("token")
-      formData.append("resume", file);
-    const response = await axios.post(
-      "http://localhost:3000/scrape/resume",
 
-      formData,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+    const token = localStorage.getItem("token");
+
+    formData.append("resume", file);
+
+    const response = await api.post("/scrape/resume", formData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
       },
-    );
+    });
 
     return response.data;
   } catch (error) {
