@@ -1,3 +1,4 @@
+
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
@@ -21,9 +22,12 @@ const __dirname = path.dirname(__filename);
 // Middleware
 app.use(
   cors({
-    origin: ["http://localhost:5173", "https://ai-interview-s9rr.onrender.com"],
+    origin: [
+      "http://localhost:5173",
+      "https://ai-interview-s9rr.onrender.com",
+    ],
     credentials: true,
-  }),
+  })
 );
 
 app.use(express.json());
@@ -31,7 +35,7 @@ app.use(express.json());
 app.use(
   express.text({
     type: ["application/sdp", "text/plain"],
-  }),
+  })
 );
 
 // DNS configuration
@@ -46,15 +50,18 @@ app.use(
     console.log("Scrape route reached:", req.method, req.originalUrl);
     next();
   },
-  ScrapeRoutes,
+  ScrapeRoutes
 );
 
 app.use("/start", InterviweRoutes);
 
-// Frontend build directory
-const frontendPath = path.join(__dirname, "../frontend/ai-interview/dist");
+// Frontend production build directory
+const frontendPath = path.join(
+  __dirname,
+  "../frontend/ai-interview"
+);
 
-// Serve React static files
+// Serve frontend static files
 app.use(express.static(frontendPath));
 
 // React Router fallback
@@ -62,9 +69,12 @@ app.get("/{*splat}", (req, res) => {
   res.sendFile(path.join(frontendPath, "index.html"), (err) => {
     if (err) {
       console.error("Frontend index.html not found:", err);
-      res
-        .status(500)
-        .send("Frontend build not found. Please run npm run build.");
+
+      if (!res.headersSent) {
+        res.status(500).send(
+          "Frontend build not found. Please check the Render build command."
+        );
+      }
     }
   });
 });
@@ -75,7 +85,8 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, "0.0.0.0", async () => {
   try {
     await connectdb();
-    console.log(`MongoDB connected successfully`);
+
+    console.log("MongoDB connected successfully");
     console.log(`Server running on port ${PORT}`);
     console.log(`Frontend directory: ${frontendPath}`);
   } catch (error) {
