@@ -17,10 +17,11 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      "https://ai-interview-s9rr.onrender.com",
-      "https://ai-interview-ten-gamma.vercel.app",
+      "https://ai-interview-linksaver.vercel.app",
     ],
     credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   }),
 );
 
