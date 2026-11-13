@@ -15,10 +15,24 @@ export const app = express();
 // Middleware
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173",
-      "https://ai-interview-linksaver.vercel.app",
-    ],
+    origin: (origin, callback) => {
+      const allowedOrigins = [
+        "http://localhost:5173",
+        "https://ai-interview-linksaver.vercel.app",
+      ];
+
+      // Allow your Vercel project preview deployments
+      const isVercelPreview =
+        /^https:\/\/ai-interview-[a-z0-9-]+-linksaver\.vercel\.app$/.test(
+          origin || "",
+        );
+
+      if (!origin || allowedOrigins.includes(origin) || isVercelPreview) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
