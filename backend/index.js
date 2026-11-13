@@ -56,10 +56,7 @@ app.use(
 app.use("/start", InterviweRoutes);
 
 // Frontend production build directory
-const frontendPath = path.join(
-  __dirname,
-  "../frontend/ai-interview"
-);
+const frontendPath = path.join(__dirname, "../frontend/ai-interview/dist");
 
 // Serve frontend static files
 app.use(express.static(frontendPath));
